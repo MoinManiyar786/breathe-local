@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7f2">
+  <meta name="description" content="A daily air-quality brief and practical smog plan for your household and neighbourhood.">
+  <title>BreatheLocal — Plan around the air</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/mark.svg">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/js/app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="topbar">
+    <div class="nav-shell shell">
+      <a class="brand" href="#main" aria-label="BreatheLocal home">
+        <img src="/assets/mark.svg" width="34" height="34" alt="">
+        <span>Breathe<span>Local</span></span>
+      </a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a class="nav-active" href="#main" aria-current="location">Overview</a>
+        <a href="#plan">Action plan</a>
+        <a href="#impact">Impact</a>
+      </nav>
+      <button class="button location-button" id="open-location" type="button" aria-haspopup="dialog">
+        <span data-icon="pin"></span><span id="nav-city">New Delhi</span><span class="chevron" data-icon="chevron"></span>
+      </button>
+    </div>
+  </header>
+
+  <main id="main" class="shell">
+    <noscript><p class="notice">Enable JavaScript to see your air brief and build a plan.</p></noscript>
+    <section class="page-intro" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow intro-kicker"><span></span> DAILY AIR BRIEF</p>
+        <h1 id="page-title">Plan around the air.</h1>
+        <p class="intro-summary">Know what’s outside. Make a better plan for inside and on the move.</p>
+      </div>
+      <button class="button button-light" id="forecast-button" type="button"><span data-icon="refresh"></span><span id="forecast-label">Load current forecast</span></button>
+      <p class="data-message" id="data-message" role="status" hidden></p>
+    </section>
+
+    <section class="dashboard-grid" aria-label="Current outdoor air and forecast">
+      <article id="air-hero" class="air-hero">
+        <div class="hero-top">
+          <div>
+            <p class="hero-kicker"><span data-icon="pin"></span><span id="hero-place"></span></p>
+            <h2>Current outdoor air</h2>
+          </div>
+          <span id="data-badge" class="data-badge"></span>
+        </div>
+        <div class="hero-value">
+          <div class="aqi-reading"><strong id="aqi-value"></strong><span>U.S. AQI</span></div>
+          <div class="hero-rating">
+            <span class="aq-status" id="aq-status"></span>
+            <span id="pm-reading" class="hero-pm"></span>
+          </div>
+        </div>
+        <p class="hero-advice" id="hero-advice"></p>
+        <div class="aqi-scale">
+          <div class="scale-track" id="scale-track" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span><span></span><i id="scale-caret"></i>
+          </div>
+          <div class="scale-caption"><span>Good</span><button class="text-button" type="button" data-open-help>About U.S. AQI</button><span>Hazardous</span></div>
+        </div>
+      </article>
+
+      <article class="panel forecast" aria-labelledby="forecast-title">
+        <div class="panel-heading">
+          <div><h2 id="forecast-title">24-hour outlook</h2><p>Forecast U.S. AQI <span aria-hidden="true">·</span> Local time</p></div>
+          <span class="icon-tile forecast-icon" data-icon="chart"></span>
+        </div>
+        <div id="forecast-chart" class="forecast-chart"></div>
+        <div id="window-card" class="window-card"></div>
+      </article>
+    </section>
+    <div class="source-line">
+      <span data-icon="info"></span><p id="data-details" role="status"></p><button class="text-button" id="use-example" type="button" hidden>Open winter example</button>
+    </div>
+
+    <section id="plan" class="section plan-section" aria-labelledby="plan-title">
+      <div class="section-heading">
+        <div>
+          <h2 id="plan-title">Your action plan</h2>
+          <p>Small changes based on the air and your household. <a class="mobile-settings" href="#household">Edit household</a></p>
+        </div>
+        <button class="button button-primary" id="open-coach" type="button" aria-haspopup="dialog"><span data-icon="sparkles"></span> Ask the AI coach</button>
+      </div>
+      <div class="dashboard-grid plan-grid">
+        <div class="actions" id="actions"></div>
+        <aside class="side-stack" aria-label="Household and community options">
+          <section class="panel profile-panel" id="household" aria-labelledby="profile-title">
+            <div class="panel-heading">
+              <div><h3 id="profile-title">Your household</h3><p>Change these to update your plan.</p></div>
+              <span class="icon-tile profile-icon" data-icon="people"></span>
+            </div>
+            <form id="profile-form">
+              <label class="toggle-row">
+                <span><strong>Sensitive household members</strong><small>Children, older adults, or people with heart or lung conditions.</small></span>
+                <input name="sensitive" type="checkbox" checked><span class="toggle" aria-hidden="true"></span>
+              </label>
+              <label class="toggle-row">
+                <span><strong>HEPA air cleaner available</strong></span>
+                <input name="purifier" type="checkbox"><span class="toggle" aria-hidden="true"></span>
+              </label>
+              <div class="choices">
+                <label>Usual travel<select name="commute">
+                  <option value="car">Private car</option><option value="transit">Bus or metro</option>
+                  <option value="active">Walk or cycle</option><option value="remote">No regular commute</option>
+                </select></label>
+                <label>Schedule<select name="flexibility">
+                  <option value="fixed">Fixed schedule</option><option value="flexible">Can move trips</option>
+                </select></label>
+              </div>
+            </form>
+            <p class="profile-note"><span data-icon="lock"></span> Preferences are saved on this device.</p>
+            <p class="sr-only" id="profile-status" role="status"></p>
+          </section>
+          <section class="panel community-panel" aria-labelledby="community-title">
+            <div class="panel-heading">
+              <div><h3 id="community-title">Share an air brief</h3><p>Send the local outlook and one practical idea to your family or neighbourhood group.</p></div>
+              <span class="icon-tile share-icon" data-icon="share"></span>
+            </div>
+            <button type="button" class="button button-light" id="open-share" aria-haspopup="dialog"><span data-icon="copy"></span> Preview share text</button>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section impact-section" id="impact" aria-labelledby="impact-title">
+      <div class="section-heading">
+        <div><h2 id="impact-title">What one fewer drive changes</h2><p>Try a weekly scenario for trips you can fully replace or skip.</p></div>
+        <span class="icon-tile impact-icon" data-icon="leaf"></span>
+      </div>
+      <div class="impact-content">
+        <form id="impact-form" class="impact-controls">
+          <label for="distance"><span>Round-trip distance</span><output id="distance-value" for="distance">12 km</output></label>
+          <input id="distance" name="distance" type="range" min="1" max="100" value="12">
+          <label for="days"><span>Round trips avoided per week</span><output id="days-value" for="days">2 trips</output></label>
+          <input id="days" name="days" type="range" min="0" max="7" value="2">
+        </form>
+        <div class="impact-results" aria-live="polite">
+          <div><strong id="km-value">24 km</strong><span>less solo driving<br>per week</span></div>
+          <div><strong id="co2-value">≈ 6.0 kg</strong><span>tailpipe CO₂ avoided<br>per week</span></div>
+        </div>
+      </div>
+      <p class="impact-note">Illustrative gasoline car estimate. It excludes emissions from replacement travel and does not estimate a change in AQI. <a href="https://www.epa.gov/greenvehicles/greenhouse-gas-emissions-typical-passenger-vehicle" target="_blank" rel="noopener noreferrer">EPA emissions factor</a></p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell footer-content">
+      <a class="brand footer-brand" href="#main" aria-label="BreatheLocal home"><img src="/assets/mark.svg" width="27" height="27" alt=""><span>Breathe<span>Local</span></span></a>
+      <p>Follow official local health and school advisories.</p>
+      <button class="text-button" type="button" data-open-help>Data and guidance sources</button>
+    </div>
+  </footer>
+
+  <dialog id="location-dialog" aria-labelledby="location-title">
+    <div class="dialog-heading">
+      <div><h2 id="location-title">Choose your city</h2><p>Use a city-level forecast for your daily brief.</p></div>
+      <form method="dialog"><button class="close-button" aria-label="Close location selection" data-icon="close"></button></form>
+    </div>
+    <form id="city-form" class="search-form">
+      <label class="sr-only" for="city-query">City name</label>
+      <input id="city-query" name="q" type="search" placeholder="Search a city" minlength="2" maxlength="60" required autofocus>
+      <button class="button button-primary" type="submit">Search</button>
+    </form>
+    <p id="city-status" class="dialog-status" role="status"></p>
+    <div id="city-results" class="city-list"></div>
+  </dialog>
+
+  <dialog id="coach-dialog" aria-labelledby="coach-title">
+    <div class="dialog-heading">
+      <div><h2 id="coach-title">Ask the AI coach</h2><p>Get a suggestion grounded in your air brief and routine.</p></div>
+      <form method="dialog"><button class="close-button" aria-label="Close AI coach" data-icon="close"></button></form>
+    </div>
+    <form id="coach-form" class="coach-form">
+      <label for="coach-focus">What’s on your mind?</label>
+      <select id="coach-focus" name="focus"></select>
+      <p class="profile-note"><span data-icon="lock"></span> Sends AQI categories and routine settings to Google Gemini when enabled.</p>
+      <button class="button button-primary" type="submit"><span data-icon="sparkles"></span> Find my next step</button>
+    </form>
+    <p id="coach-status" class="dialog-status" role="status"></p>
+    <div id="coach-result" hidden></div>
+  </dialog>
+
+  <dialog id="share-dialog" aria-labelledby="share-title">
+    <div class="dialog-heading">
+      <div><h2 id="share-title">Share a local air brief</h2><p>The brief includes the scenario and local air guidance.</p></div>
+      <form method="dialog"><button class="close-button" aria-label="Close share preview" data-icon="close"></button></form>
+    </div>
+    <label class="sr-only" for="share-text">Air brief to share</label>
+    <textarea id="share-text" readonly rows="8"></textarea>
+    <button class="button button-primary" id="copy-brief" type="button"><span data-icon="copy"></span> Copy air brief</button>
+    <p id="share-status" class="dialog-status" role="status"></p>
+  </dialog>
+
+  <dialog id="help-dialog" aria-labelledby="help-title">
+    <div class="dialog-heading">
+      <div><h2 id="help-title">Air quality and sources</h2><p>The index uses the U.S. AQI scale.</p></div>
+      <form method="dialog"><button class="close-button" aria-label="Close air quality sources" data-icon="close"></button></form>
+    </div>
+    <ul id="aqi-legend" class="aqi-legend"></ul>
+    <p class="help-copy">Open-Meteo uses Copernicus Atmosphere Monitoring Service (CAMS) model estimates. Street-level conditions can differ. Hourly PM₂.₅ is a concentration in µg/m³ and is separate from the AQI value.</p>
+    <ul id="help-sources" class="help-sources"></ul>
+  </dialog>
+</body>
+</html>

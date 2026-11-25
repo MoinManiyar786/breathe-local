@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+.vercel/
+.DS_Store
+coverage/
+*.log
+
+breathe-local-source.zip
