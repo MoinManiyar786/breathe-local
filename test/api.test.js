@@ -85,7 +85,7 @@ test('coach validates requests and returns a useful offline answer with no API k
   assert.equal(fetch.mock.callCount(), 0);
 });
 
-test('coach sends only bounded context and checks model output', async (t) => {
+test('coach sends bounded context and returns a vetted explanation for Gemini’s choice', async (t) => {
   keyFor(t, 'fake-test-key');
   const previousModel = process.env.GEMINI_MODEL;
   delete process.env.GEMINI_MODEL;
@@ -98,18 +98,37 @@ test('coach sends only bounded context and checks model output', async (t) => {
     const { contents, generationConfig } = JSON.parse(options.body);
     const context = JSON.parse(contents[0].parts[0].text);
     assert.equal(generationConfig.responseMimeType, 'application/json');
-    assert.equal(context.air, 'Very unhealthy');
-    assert.deepEqual(generationConfig.responseJsonSchema.properties.actionId.enum, ['home', 'ventilation']);
+    assert.equal(context.outdoorAirCategory, 'Very unhealthy');
+    assert.equal(context.daytimeOutdoorWindowCategory, 'Unhealthy');
+    assert.deepEqual(generationConfig.responseJsonSchema.properties.choiceId.enum, [
+      'home:routine', 'home:current-outdoor-air', 'home:no-air-cleaner',
+      'ventilation:routine', 'ventilation:current-outdoor-air'
+    ]);
     assert.equal(JSON.stringify(context).includes('New Delhi'), false);
-    return modelOutput({ actionId: 'ventilation', brief: 'Pay attention to when outdoor air enters your home.' });
+    return modelOutput({ choiceId: 'ventilation:current-outdoor-air' });
   });
   const args = { method: 'POST', headers: json, body: coachInput };
   const result = await call(coach, args);
   assert.equal(result.data.mode, 'ai');
   assert.equal(result.data.actionId, 'ventilation');
+  assert.match(result.data.brief, /^The outdoor forecast is very unhealthy/);
+});
 
-  fetch.mock.mockImplementation(async () => modelOutput({ actionId: 'outdoors', brief: 'Go outside for a long walk.' }));
-  assert.deepEqual((await call(coach, args)).data, { actionId: 'home', mode: 'rules', reason: 'unavailable' });
+test('coach rejects unknown choices and free text that claims a measured indoor condition', async (t) => {
+  keyFor(t, 'fake-test-key');
+  let selection;
+  t.mock.method(globalThis, 'fetch', async () => modelOutput(selection));
+  const args = { method: 'POST', headers: json, body: coachInput };
+  const unsupportedClaims = 'The air inside is very unhealthy for sensitive groups.';
+  for (const value of [
+    { choiceId: 'outdoors:routine' },
+    { choiceId: 'home:air-cleaner-available' },
+    { actionId: 'home', brief: unsupportedClaims },
+    { choiceId: 'home:routine', brief: unsupportedClaims }
+  ]) {
+    selection = value;
+    assert.deepEqual((await call(coach, args)).data, { actionId: 'home', mode: 'rules', reason: 'unavailable' });
+  }
 });
 
 test('coach allows 20 upstream calls in a rolling minute and falls back on the 21st', async (t) => {
@@ -117,7 +136,7 @@ test('coach allows 20 upstream calls in a rolling minute and falls back on the 2
   let now = Date.now() + 120_000;
   t.mock.method(Date, 'now', () => now);
   const fetch = t.mock.method(globalThis, 'fetch', async () =>
-    modelOutput({ actionId: 'home', brief: 'Start with what you can change at home.' }));
+    modelOutput({ choiceId: 'home:routine' }));
   const args = { method: 'POST', headers: json, body: coachInput };
   for (let index = 0; index < 20; index++) assert.equal((await call(coach, args)).data.mode, 'ai');
   now += 59_999;

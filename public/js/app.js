@@ -1,7 +1,8 @@
-import { AQI_BANDS, PLACES, EXAMPLE, bandFor, bestWindow, localTime, nextHours } from './air.js';
+import { AQI_BANDS, PLACES, EXAMPLE, bandFor, bestWindow, localTime } from './air.js';
 import { DEFAULT_PROFILE, FOCUS, SOURCES, actionsForFocus, communityBrief, exposureAdvice, makePlan,
-  readProfile, travelImpact, windowCaption } from './plan.js';
+  readProfile, travelImpact } from './plan.js';
 import { glyph } from './icons.js';
+import { renderOutlook } from './outlook-view.js';
 
 const byId = (id) => document.getElementById(id);
 const put = (id, text) => { byId(id).textContent = text; };
@@ -56,42 +57,10 @@ function renderAir() {
     ? 'Illustrative winter smog in New Delhi. Load the current forecast to plan an actual trip.'
     : 'Modeled for ' + escape(localTime(air.time, air.timezone, { dateStyle: 'medium', timeStyle: 'short' })) +
       ' local time. Source ' + linkTo('forecast') + '. Street-level air can vary.';
-  renderChart();
+  renderOutlook(air, {
+    chart: byId('forecast-chart'), gapNote: byId('forecast-gaps'), windowCard: byId('window-card')
+  });
   renderPlan();
-}
-
-function renderChart() {
-  const air = state.air;
-  const window = bestWindow(air);
-  const hours = nextHours(air);
-  const firstTime = hours[0].time;
-  const points = hours.filter(({ time }) => (time - firstTime) % 10800 === 0);
-  const ceiling = Math.max(100, Math.ceil(Math.max(...points.map(({ aqi }) => aqi)) / 100) * 100);
-  const step = ceiling <= 300 ? ceiling / (ceiling === 100 ? 2 : 3) : ceiling / 4;
-  const ticks = Array.from({ length: Math.round(ceiling / step) + 1 }, (_, index) =>
-    Math.round(ceiling - step * index));
-  const columns = points.map(({ time, aqi }) => {
-    const clock = localTime(time, air.timezone, { hour: '2-digit', minute: '2-digit' });
-    const day = localTime(time, air.timezone, { weekday: 'short' });
-    const inWindow = window && time >= window.start && time < window.end;
-    const label = day + ' ' + clock + ', U.S. AQI ' + aqi + ', ' + bandFor(aqi).label;
-    return '<div class="plot-column" aria-label="' + escape(label) + '" role="listitem" title="' + escape(label) +
-      '"><div class="bar-space"><div data-aqi="' + aqi + '" data-band="' + bandFor(aqi).id +
-      '" class="plot-bar' + (inWindow ? ' highlighted' : '') + '"><span>' + aqi +
-      '</span></div></div><span class="plot-time">' + escape(clock) + '</span></div>';
-  }).join('');
-  const chart = byId('forecast-chart');
-  chart.innerHTML = '<div class="plot-grid" aria-hidden="true">' + ticks.map((value) => '<div><span>' + value +
-    '</span><i></i></div>').join('') + '</div><div class="plot-columns" role="list" aria-label="AQI values at three-hour intervals">' + columns + '</div>';
-  for (const bar of chart.querySelectorAll('.plot-bar')) {
-    bar.style.height = Math.max(3, Number(bar.dataset.aqi) / ceiling * 100) + '%';
-  }
-  const detail = !window ? 'Check again when more daytime data is available.' : window.aqi > 150
-    ? 'Peak AQI ' + window.aqi + ' · Air still ' + bandFor(window.aqi).short.toLowerCase()
-    : 'Peak AQI ' + window.aqi + ' · Recheck before going out';
-  byId('window-card').innerHTML = '<span class="icon-tile window-icon">' + glyph('clock') +
-    '</span><div><p>Lowest forecast daytime window</p><strong>' + escape(windowCaption(window, air)) +
-    '</strong><small>' + escape(detail) + '</small></div>';
 }
 
 function renderPlan() {
@@ -172,7 +141,7 @@ function paintCoach(result, actions) {
     limit: 'Rule-based guidance · The AI coach is busy.',
     unavailable: 'Rule-based guidance · The AI coach is temporarily unavailable.'
   };
-  put('coach-status', result.mode === 'ai' ? 'AI summary · Grounded in the action below.' :
+  put('coach-status', result.mode === 'ai' ? 'AI recommendation · Matched to your routine.' :
     reasons[result.reason] || reasons.unavailable);
   const container = byId('coach-result');
   container.innerHTML = (result.brief ? '<p class="ai-brief">' + escape(result.brief) + '</p>' : '') +

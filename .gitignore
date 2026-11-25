@@ -9,3 +9,6 @@ coverage/
 *.log
 
 breathe-local-source.zip
+BreatheLocal-Review-Build.zip
+BreatheLocal-Demo.mp4
+.env.local

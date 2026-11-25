@@ -120,6 +120,8 @@ button:disabled { cursor: wait; opacity: .68; }
 .plot-bar { width: min(82%, 33px); position: relative; background: color-mix(in srgb, var(--band) 83%, white); border-radius: 5px 5px 1px 1px; }
 .plot-bar.highlighted { background: var(--band); outline: 1px solid #795249; outline-offset: 1px; }
 .plot-bar span { position: absolute; bottom: calc(100% + 3px); left: 50%; transform: translateX(-50%); color: #41354a; font-size: .68rem; font-weight: 670; }
+.plot-missing { color: var(--muted); font-size: .8rem; }
+.forecast-gaps { margin: -.52rem 0 .55rem 33px; color: var(--muted); font-size: .73rem; }
 .plot-time { align-self: end; color: var(--muted); font-size: .68rem; font-variant-numeric: tabular-nums; }
 .window-card { margin-top: auto; display: flex; gap: .68rem; align-items: center; padding: .64rem .71rem; border-radius: 11px; color: #604a24; background: #faf4e5; border: 1px solid #f0e7cf; }
 .window-icon { width: 35px; height: 35px; color: #755623; background: #f0e4c9; }

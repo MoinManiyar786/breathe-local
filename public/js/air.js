@@ -31,10 +31,23 @@ export function localTime(time, timezone, options = { hour: 'numeric', minute: '
   return new Intl.DateTimeFormat('en-GB', { timeZone: timezone, ...options }).format(time * 1000);
 }
 
+function outlookStart(air) {
+  const anchor = air.hours[0]?.time ?? air.time;
+  return anchor + Math.floor((air.time - anchor) / HOUR) * HOUR;
+}
+
 export function nextHours(air) {
-  const current = air.hours.findLast(({ time }) => time <= air.time && time > air.time - HOUR);
-  const from = current?.time ?? air.time;
+  const from = outlookStart(air);
   return air.hours.filter(({ time }) => time >= from && time < from + 24 * HOUR);
+}
+
+export function forecastSamples(air) {
+  const from = outlookStart(air);
+  const readings = new Map(nextHours(air).map(({ time, aqi }) => [time, aqi]));
+  return Array.from({ length: 8 }, (_, index) => {
+    const time = from + index * 3 * HOUR;
+    return { time, aqi: readings.get(time) ?? null };
+  });
 }
 
 export function bestWindow(air) {

@@ -29,9 +29,9 @@ To enable the generative coach locally, copy `.env.example` to `.env`, fill in `
 
 ## How decisions are made
 
-- **City outlook.** Open-Meteo geocodes a city and provides CAMS model data. The brief labels its source and local valid time. It displays the U.S. AQI and PM₂.₅ in µg/m³ as separate readings. The chart samples the next 24 hourly slots every three hours. The window check compares all available, complete three-hour blocks between 07:00 and 19:00 local time, preferring the lowest peak AQI and then the lowest mean. Even the lowest window can be unhealthy.
+- **City outlook.** Open-Meteo geocodes a city and provides CAMS model data. The brief labels its source and local valid time. It displays the U.S. AQI and PM₂.₅ in µg/m³ as separate readings. The chart reserves eight three-hour slots and marks missing readings without shifting the timeline. The window check compares all available, complete three-hour blocks between 07:00 and 19:00 local time, preferring the lowest peak AQI and then the lowest mean. Even the lowest window can be unhealthy.
 - **Household action plan.** Shared rules use current AQI, the forecast window, travel mode, schedule flexibility, household sensitivity, and access to a HEPA cleaner. Each card explains the action, its direct effect, and its source. At high AQI the plan prioritizes exposure, and gives an alternative to vigorous outdoor travel.
-- **Generative coach.** The user chooses a question. The server sends AQI categories, four household settings, and a short list of relevant actions to Gemini 2.5 Flash. A structured response selects one allowed action and writes a brief rationale. The app displays the selected action’s guidance and impact from its rules. Missing credentials, an invalid model response, timeout, or throttling trigger a labeled rule-based answer.
+- **Generative coach.** The user chooses a question. The server sends AQI categories, four household settings, and a short list of relevant action-and-explanation pairs to Gemini 2.5 Flash. Gemini selects one pair using a structured response. The app supplies the selected explanation, safety guidance, and impact from its own vetted rules. Missing credentials, an invalid model response, timeout, or throttling trigger a labeled rule-based answer.
 - **Weekly impact.** Displaced car-kilometres equal round-trip distance × avoided trips. The estimate uses the EPA typical gasoline passenger car factor of about 400 g CO₂ per mile, equivalent to about 0.249 kg per kilometre. For example, avoiding two 12 km round trips displaces 24 car-km and about 6.0 kg of tailpipe CO₂. This scenario excludes emissions from replacement travel, lifecycle emissions, and changes to local AQI. [EPA factor](https://www.epa.gov/greenvehicles/greenhouse-gas-emissions-typical-passenger-vehicle)
 - **Community brief.** Copy the city, data source, time, AQI, daytime outlook, and a practical group action. The shared text uses general public guidance and contains no saved household settings.
 
@@ -50,7 +50,7 @@ To enable the generative coach locally, copy `.env.example` to `.env`, fill in `
 | --- | --- |
 | `public/` | Dashboard, styles and images, AQI calculations, and household rules |
 | `api/` | Vercel-compatible routes for forecasts, city search, and coaching |
-| `lib/` | Shared request validation and upstream handling |
+| `lib/` | HTTP helpers, coach context, and Gemini response validation |
 | `scripts/` | Local server and static build |
 | `test/` | Forecast, planning, impact, and route tests |
 
@@ -59,14 +59,14 @@ npm test
 npm run build
 ```
 
-The tests cover AQI thresholds, local time and missing data, changes to household rules, trip calculations, request validation, the AI fallback, and structured model output against a mocked provider. The production build writes the dashboard to `dist/`. Vercel serves the API routes separately.
+The tests cover AQI thresholds, local time and missing chart slots, changes to household rules, trip calculations, request validation, the AI fallback, and rejection of unsupported Gemini output against a mocked provider. The production build writes the dashboard to `dist/`. Vercel serves the API routes separately.
 
 ## GitHub, Vercel, and submission
 
 1. Copy the source to your other laptop. Create an empty **public** GitHub repository and push the project on a single branch, such as `main`. Keep `.env`, generated builds, and dependency folders out of Git. The included `.gitignore` covers these.
 2. Import the repository into Vercel. Keep the repository root as the project root and select **Other** if Vercel asks for a framework. The included `vercel.json` sets the build command, output folder, and headers.
 3. Add `GEMINI_API_KEY` in the Vercel project's **Settings → Environment Variables** for Production. `GEMINI_MODEL` is optional. Deploy or redeploy after setting the key.
-4. Check the deployed site in a signed-out browser. Load a current forecast, change a household setting, request a coach response marked **AI summary**, and preview the share text.
+4. Check the deployed site in a signed-out browser. Load a current forecast, change a household setting, request a coach response marked **AI recommendation**, and preview the share text.
 5. Submit the public GitHub URL and the video link if requested by the submission form. Use an unlisted YouTube link or a Drive link that the evaluator can open. Confirm the repository has one branch and is under 10 MB before using one of the three submission attempts.
 
 ### Suggested demo

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { bandFor, bestWindow, EXAMPLE, nextHours, PLACES, readForecast } from '../public/js/air.js';
+import { bandFor, bestWindow, EXAMPLE, forecastSamples, nextHours, PLACES, readForecast } from '../public/js/air.js';
 import { actionsForFocus, communityBrief, DEFAULT_PROFILE, makePlan, readProfile,
   travelImpact, windowCaption } from '../public/js/plan.js';
 
@@ -39,6 +39,15 @@ test('forecast keeps preceding current hour in a half-hour time zone and omits m
   assert.equal(air.pm25, null);
   assert.deepEqual(nextHours(air).map(({ aqi }) => aqi), [268, 250]);
   assert.throws(() => readForecast({ ...payload, current: { us_aqi: null } }));
+});
+
+test('forecast keeps eight fixed chart slots and preserves missing readings and zero AQI', () => {
+  const hours = EXAMPLE.hours.filter((_, index) => index !== 0 && index !== 3 && index !== 21)
+    .map((point) => point.time === EXAMPLE.hours[6].time ? { ...point, aqi: 0 } : point);
+  const slots = forecastSamples({ ...EXAMPLE, time: EXAMPLE.time + 45 * 60, hours });
+  assert.equal(slots.length, 8);
+  assert.deepEqual(slots.map(({ time }) => time), Array.from({ length: 8 }, (_, i) => EXAMPLE.time + i * 10800));
+  assert.deepEqual(slots.map(({ aqi }) => aqi), [null, null, 0, 181, 160, 203, 247, null]);
 });
 
 test('routine adapts to health sensitivity, filtration access and travel mode', () => {
